@@ -1,0 +1,171 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" lang="en"></meta>
+  <meta name="viewport" content="width=device-width;" />
+  <title>Hydranten - Wien</title>
+  <!--jQuery-->
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  <!--leaflet-->
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" />
+  <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+  <style>
+    html {
+      margin:0; padding:0;
+    }
+    body {
+      margin:0; padding:0;
+      font-size: 13px;
+    }
+    #map {
+      position: fixed;
+      margin:0; padding:0;
+      top:0; left:0; right:400px; bottom:0;
+    }
+    #data {
+      position: absolute;
+      margin:0; padding:20px;
+      top:0; right:0; bottom:0; width:360px;
+    }
+    table {
+      border-collapse: separate;
+      border-spacing: 8px 2px;
+    }
+    .modal { /* wait spinner */
+      display: none;
+      position: fixed;
+      z-index: 1007;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255, 0.6) url(data:image/gif;base64,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) 50% 50% no-repeat;
+    }
+    body.loading .modal {
+      display:block;
+    }
+    .leaflet-popup-pane {
+      opacity: 0.88;
+    }
+    .leaflet-popup-content-wrapper {
+      border-radius: 3px;
+    }
+    .foo {
+      border:none;
+      background-color:rgba(0,0,0,0);
+      left:20px;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    var map;
+    $(document).ready(function() {
+      // some initalizations
+      // init leaflet
+      map = new L.Map("map");
+      var tilesUrl = "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+      var tilesAttrib = '&copy; <a href="www.openstreetmap.org/copyright">OpenStreetMap</a> contributors&ensp;<small>Data:ODbL, Map:cc-by-sa</small>'+
+                        ' - Overlay &copy; <a href="http://data.wien.gv.at/katalog/feuerhydranten.html">OGD Wien</a> <small>cc-by</small>';
+      var tiles = new L.TileLayer(tilesUrl,{attribution:tilesAttrib});
+      map.setView([48.2043,16.3583], 12).addLayer(tiles);
+      scaleControl = new L.Control.Scale({metric:true,imperial:false,});
+      scaleControl.addTo(map);
+      // wait spinner
+      $(document).on({
+        ajaxStart: function() {
+          $("body").addClass("loading");
+        },
+        ajaxStop: function() {
+          $("body").removeClass("loading");
+        },
+      });
+
+      var vienna, osm;
+      // get and show vienna data
+      $.getJSON("hydr_wien.geojson", function(data) {
+        vienna = data;
+        var gjl = L.geoJson(data, {
+          pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, {radius:5});
+          },
+          onEachFeature: function(feature, layer) {
+            var popup = "<p>";
+            popup += feature.id;
+            popup += "</p>";
+            layer.bindPopup(popup);
+          },
+          style: function(feature) {
+            var col;
+            col = fill = "blue";
+            return {
+              color: col,
+              fill_color: fill,
+              opacity: 0.6,
+              fill_opacity: 0.4,
+              weight: 2,
+            }
+          },
+        });
+        gjl.addTo(map).bringToBack();
+        if (vienna && osm) compare(vienna,osm);
+      });
+      // get and show osm data
+      $.getJSON("hydr_osm.geojson", function(data) {
+        osm = data;
+        var gjl = L.geoJson(data, {
+          pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, {radius:5});
+          },
+          onEachFeature: function(feature, layer) {
+            var popup = "<p>";
+            popup += "OSM node/"+feature.properties["@id"];
+            popup += "</p>";
+            layer.bindPopup(popup);
+          },
+          style: function(feature) {
+            var col;
+            col = fill = "red";
+            return {
+              color: col,
+              fill_color: fill,
+              opacity: 0.8,
+              fill_opacity: 0.4,
+              weight: 2,
+            }
+          },
+        });
+        gjl.addTo(map);
+        if (vienna && osm) compare(vienna,osm);
+      });
+    }); // end $(document).ready
+    function dist(la1,lo1,la2,lo2) {
+      var R = 6367500;
+      var DTR = Math.PI/180;
+      return R*DTR*Math.sqrt( Math.pow(la1-la2,2) + Math.pow(Math.cos(DTR*la1)*(lo1-lo2),2) ); 
+    }
+    function compare(vienna, osm) {
+      osm.features.forEach(function(f) {
+        var g = f.geometry.coordinates;
+        var dis = Infinity;
+        var piv;
+        vienna.features.forEach(function(vf) {
+          var vg = vf.geometry.coordinates;
+          var d = dist(g[1],g[0],vg[1],vg[0]);
+          if (d < dis) {
+            piv = vf;
+            dis = d;
+          }
+        });
+        $("#data table").append("<tr><td><u><a onclick='map.setView(["+g[1]+","+g[0]+"],18);'>node/"+f.properties["@id"]+"</a></u></td><td>"+piv.id+"</td><td>"+(Math.round(dis*10)/10)+"</td></tr>");
+      });      
+    }
+  </script>
+  <!--map-->
+  <div id="map"></div>
+  <!--data-->
+  <div id="data"><table><tr><th>osm</th><th>vienna-ogd</th><th>Δ</th></tr></table></div>
+  <!--wait spinner-->
+  <div class="modal"></div>
+</body>
+</html>
